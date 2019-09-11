@@ -1,7 +1,10 @@
 package me.namcap.game;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+
+import me.namcap.main.Constants;
 
 public class Util {
     
@@ -24,6 +27,40 @@ public class Util {
         }
         
         return out;
+    }
+    
+    
+    public static void translate(BufferedImage... images) {
+        
+        Color wallColor = Constants.wall;
+        Color doorColor = Constants.door;
+        
+        for(BufferedImage image : images) {
+            
+            Graphics g = image.getGraphics();
+            int[][][] pixels = Util.getColorData(image);
+            
+            int width = pixels.length;
+            int height = pixels[0].length;
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < height; y++) {
+                    int[] colour = pixels[x][y];
+                    if(colour[3] > 0) {
+                        if(colour[0] > 0x7f && colour[1] > 0x7f && colour[2] > 0x7f) {
+                            g.clearRect(x,y,0,0);
+                            g.setColor(wallColor);
+                            g.drawRect(x,y,0,0);
+                        } else if(colour[0] <= 0x7f && colour[1] <= 0x7f && colour[2] <= 0x7f) {
+                            g.clearRect(x,y,0,0);
+                            g.setColor(doorColor);
+                            g.drawRect(x,y,0,0);
+                        }
+                    }
+                }
+            }
+            
+        }
+        
     }
     
 }

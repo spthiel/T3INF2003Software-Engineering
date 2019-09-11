@@ -5,17 +5,30 @@ import java.awt.image.BufferedImage;
 public class Map {
     
     private DataToObject[][] map;
+    private int width, height;
     
     public Map(BufferedImage img) {
     
         int[][][] mapData = Util.getColorData(img);
         map = new DataToObject[mapData.length][mapData[0].length];
-        for(int x = 0; x < map.length; x++) {
-            for(int y = 0; y < map[0].length; y++) {
+        this.width = map.length;
+        this.height = map[0].length;
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
                 int[] colour = mapData[x][y];
                 map[x][y] = DataToObject.getObject(colour[0], colour[1], colour[2], colour.length > 3 ? colour[3] : -1);
             }
         }
+    }
+    
+    public int getHeight() {
+        
+        return height;
+    }
+    
+    public int getWidth() {
+        
+        return width;
     }
     
     public DataToObject getBlock(int x, int y) throws ArrayIndexOutOfBoundsException {
