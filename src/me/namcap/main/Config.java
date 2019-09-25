@@ -2,14 +2,24 @@ package me.namcap.main;
 
 import java.awt.*;
 
-public class Constants {
+import me.namcap.Textures.Fonts;
+
+public class Config {
     
-    public static final int
+    public enum Difficulty {
+        EASY, MEDIUM, HARD;
+    }
+    
+    public static int
             maxups      = 60,
             maxfps      = 120,
             blocksize   = 32,
             coinsize    = 4,
             bitcoinsize = 8;
+    
+    public static Fonts font = Fonts.COURIER;
+    
+    public static Difficulty difficulty = Difficulty.HARD;
     
     public static final float VELOCITY = 1 / 10f;
     
