@@ -5,8 +5,9 @@ import java.awt.event.KeyListener;
 
 public interface IGamestate extends KeyListener {
     
-    void update();
+    boolean update();
     void draw(Graphics g);
     Dimension getPreferredSize();
+    IGamestate nextState();
     
 }

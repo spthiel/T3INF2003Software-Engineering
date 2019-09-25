@@ -2,6 +2,8 @@ package me.namcap.game;
 
 import java.awt.image.BufferedImage;
 
+import me.namcap.Util.Util;
+
 public class Map {
     
     private DataToObject[][] map;

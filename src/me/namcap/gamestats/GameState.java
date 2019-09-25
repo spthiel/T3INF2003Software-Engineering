@@ -7,77 +7,178 @@ import java.util.ArrayList;
 
 import me.namcap.Textures.Textures;
 import me.namcap.Util.ConnectedTextures;
+import me.namcap.Util.Direction;
+import me.namcap.Util.pathfinding.PathFinder;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.game.MapLoader;
 import me.namcap.game.entities.Ghost;
 import me.namcap.game.entities.Player;
-import me.namcap.main.Constants;
+import me.namcap.main.Config;
 
 public class GameState implements IGamestate {
     
-    private Map mapObject;
-    private ConnectedTextures connectedTextures;
-    private DataToObject[][] map;
-    private Dimension size;
-    private Player p;
+    private static GameState currentInstance;
+    private boolean gameWon;
     
-    private ArrayList<Ghost> ghosts;
+    public static Dimension getSize() {
+        return currentInstance.size;
+    }
+    
+    Map mapObject;
+    ConnectedTextures connectedTextures;
+    DataToObject[][] map;
+    Dimension size;
+    Player p;
+    
+    ArrayList<Ghost> ghosts;
+    private boolean gameOver;
+    private int coins = 0;
     
     public GameState() {
-        
+        currentInstance = this;
         mapObject = MapLoader.getRandomMap();
         map = mapObject.getMap();
         connectedTextures = new ConnectedTextures(mapObject);
-        size = new Dimension(map.length * Constants.blocksize, map[0].length * Constants.blocksize);
+        size = new Dimension(map.length * Config.blocksize, map[0].length * Config.blocksize);
         ghosts = new ArrayList<>();
         findPlayerAndGhosts();
+        updateMap(mapObject);
+    }
+    
+    GameState(Object ignored) {}
+    
+    private void updateMap(Map map) {
+        if(Ghost.finder == null || !Ghost.finder.uses(map)) {
+            Ghost.finder = new PathFinder(map);
+        }
     }
     
     private void findPlayerAndGhosts() {
-        
+        p = new Player(this, mapObject);
         for (int x = 0 ; x < map.length ; x++) {
             for (int y = 0 ; y < map[0].length ; y++) {
                 if (map[x][y].equals(DataToObject.PLAYER)) {
                     map[x][y] = DataToObject.NONE;
-                    if (p == null) {
-                        p = new Player(this::isGhostAt, x, y, mapObject);
+                    if (p.getX() == 0 && p.getY() == 0) {
+                        p.setPosition(x,y);
                     }
                 } else if (map[x][y].equals(DataToObject.GHOST)) {
                     map[x][y] = DataToObject.NONE;
-                    ghosts.add(new Ghost(this::isGhostAt, x, y, mapObject));
+                    ghosts.add(new Ghost(this, x, y, p, mapObject));
                 } else if (map[x][y].equals(DataToObject.DOOR)) {
                     map[x][y] = DataToObject.NONE;
+                } else if (map[x][y].equals(DataToObject.COIN) || map[x][y].equals(DataToObject.BITCOIN)) {
+                    coins++;
                 }
             }
         }
-        if (p == null) {
-            p = new Player(mapObject);
-        }
+    }
+    
+    public void kill() {
+        gameOver = true;
     }
     
     public boolean isGhostAt(int x, int y) {
-        return ghosts.stream().anyMatch(ghost -> ghost.getX() == x && ghost.getY() == y);
+        for (Ghost ghost : ghosts) {
+            if (ghost.getX() == x && ghost.getY() == y) {
+                return true;
+            }
+        }
+        return false;
     }
+    
+    public Ghost getGhostAt(int x, int y) {
+        for (Ghost ghost : ghosts) {
+            if (ghost.getX() == x && ghost.getY() == y) {
+                return ghost;
+            }
+        }
+        return null;
+    }
+    
+    private boolean first = true;
+    private long time = 0L;
     
     @Override
-    public void update() {
-        p.update();
-        int px = bounds(Math.round(p.getX()), 0, map.length);
-        int py = bounds(Math.round(p.getY()), 0, map[0].length);
-        if(map[bounds(px, 0, map.length-1)][bounds(py, 0, map[0].length-1)] == DataToObject.COIN) {
-            map[bounds(px, 0, map.length-1)][bounds(py, 0, map[0].length-1)] = DataToObject.NONE;
-            System.out.println("Coin");
+    public boolean update() {
+        
+        if (gameOver) {
+            return false;
         }
+        if (first) {
+            time = System.currentTimeMillis();
+            first = false;
+            return true;
+        }
+        if(System.currentTimeMillis() < time + 1000) {
+            return false;
+        }
+        
+        p.update();
+        int px = bounds(Math.round(p.getX()), map.length);
+        int py = bounds(Math.round(p.getY()), map[0].length);
+        processCoin(DataToObject.COIN, px, py);
+        processCoin(DataToObject.BITCOIN, px, py);
         ghosts.forEach(Ghost::update);
+        
+        checkCollisions();
+        
+        return false;
     }
     
-    private int bounds(int value, int min, int max) {
-        if(value < min) {
+    private void checkCollisions() {
+        int px = p.getIX();
+        int py = p.getIY();
+        Direction dir = p.getDirection();
+        int pdx = px + dir.getDx();
+        int pdy = py + dir.getDy();
+        for(Ghost g : ghosts) {
+            int gx = g.getIX();
+            int gy = g.getIY();
+            if(pdx == gx && pdy == gy) {
+                processCollision(g);
+            }
+            Direction d = g.getDirection();
+            int gdx = gx + d.getDx();
+            int gdy = gx + d.getDy();
+            if(gdx == px && gdy == py) {
+                processCollision(g);
+            }
+        }
+    }
+    
+    private void processCollision(Ghost g) {
+        if(g.isReturning()) {
+            return;
+        }
+        if(g.isVincible()) {
+            g.kill();
+        } else {
+            kill();
+        }
+    }
+    
+    private void processCoin(DataToObject coin, int px, int py) {
+        if(map[bounds(px, map.length-1)][bounds(py, map[0].length-1)] == coin) {
+            map[bounds(px, map.length-1)][bounds(py, map[0].length-1)] = DataToObject.NONE;
+            coins--;
+            if (coins == 0) {
+                gameOver = true;
+                gameWon = true;
+            }
+            if(coin == DataToObject.BITCOIN) {
+                ghosts.forEach(Ghost :: setVincible);
+            }
+        }
+    }
+    
+    private int bounds(int value, int max) {
+        if(value < 0) {
             value = max;
         }
         if(value > max) {
-            value = min;
+            value = 0;
         }
         return value;
     }
@@ -85,30 +186,33 @@ public class GameState implements IGamestate {
     @Override
     public void draw(Graphics g) {
         
+        drawMap(g);
+        drawPlayer(g);
+        drawGhosts(g);
+    }
+    
+    void drawMap(Graphics g) {
         for (int x = 0 ; x < map.length ; x++) {
             for (int y = 0 ; y < map[0].length ; y++) {
                 draw(g, x, y, map[x][y]);
             }
         }
-        drawPlayer(g);
-        drawGhosts(g);
     }
     
     private void drawGhosts(Graphics g) {
         for(Ghost ghost : ghosts) {
     
-            int x = (int) (ghost.getX() * Constants.blocksize);
-            int y = (int) (ghost.getY() * Constants.blocksize);
+            int x = (int) (ghost.getX() * Config.blocksize);
+            int y = (int) (ghost.getY() * Config.blocksize);
             drawOverlap(g, ghost.getImage(), x, y, g.getClipBounds().width, g.getClipBounds().height);
             drawOverlap(g, ghost.getEye(), x, y, g.getClipBounds().width, g.getClipBounds().height);
         }
-        
     }
     
     private void drawPlayer(Graphics g) {
         
-        int x = (int) (p.getX() * Constants.blocksize);
-        int y = (int) (p.getY() * Constants.blocksize);
+        int x = (int) (p.getX() * Config.blocksize);
+        int y = (int) (p.getY() * Config.blocksize);
         BufferedImage texture = p.getImage();
         drawOverlap(g, texture, x, y, g.getClipBounds().width, g.getClipBounds().height);
     }
@@ -116,37 +220,37 @@ public class GameState implements IGamestate {
     private void drawOverlap(Graphics g, BufferedImage texture, int x, int y, int width, int height) {
         if(x < 0) {
             int cx = width + x;
-            g.drawImage(texture, cx, y, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, cx, y, Config.blocksize, Config.blocksize, null);
         }
         if(y < 0) {
             int cy = height + y;
-            g.drawImage(texture, x, cy, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, x, cy, Config.blocksize, Config.blocksize, null);
         }
         if(x < 0 && y < 0) {
             int cx = width + x;
             int cy = height + y;
-            g.drawImage(texture, cx, cy, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, cx, cy, Config.blocksize, Config.blocksize, null);
         }
-        if(x + Constants.blocksize  > width) {
+        if(x + Config.blocksize  > width) {
             int cx = x - width;
-            g.drawImage(texture, cx, y, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, cx, y, Config.blocksize, Config.blocksize, null);
         }
-        if(y + Constants.blocksize > height) {
+        if(y + Config.blocksize > height) {
             int cy = y - height;
-            g.drawImage(texture, x, cy, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, x, cy, Config.blocksize, Config.blocksize, null);
         }
-        if(x + Constants.blocksize > width && y + Constants.blocksize  > height) {
+        if(x + Config.blocksize > width && y + Config.blocksize  > height) {
             int cx = x - width;
             int cy = y - height;
-            g.drawImage(texture, cx, cy, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, cx, cy, Config.blocksize, Config.blocksize, null);
         }
-        g.drawImage(texture, x, y, Constants.blocksize, Constants.blocksize, null);
+        g.drawImage(texture, x, y, Config.blocksize, Config.blocksize, null);
     }
     
     private void draw(Graphics g, int x, int y, DataToObject object) {
         
-        int ax = x * Constants.blocksize;
-        int ay = y * Constants.blocksize;
+        int ax = x * Config.blocksize;
+        int ay = y * Config.blocksize;
         
         if (object == DataToObject.WALL || object == DataToObject.DOOR) {
             BufferedImage texture;
@@ -164,7 +268,7 @@ public class GameState implements IGamestate {
             } else {
                 texture = connectedTextures.getImage(x, y);
             }
-            g.drawImage(texture, ax, ay, Constants.blocksize, Constants.blocksize, null);
+            g.drawImage(texture, ax, ay, Config.blocksize, Config.blocksize, null);
             return;
         }
         
@@ -175,13 +279,13 @@ public class GameState implements IGamestate {
         if (object == DataToObject.COIN || object == DataToObject.BITCOIN) {
             int size;
             if (object == DataToObject.COIN) {
-                g.setColor(Constants.coin);
-                size = Constants.coinsize;
+                g.setColor(Config.coin);
+                size = Config.coinsize;
             } else {
-                g.setColor(Constants.bitcoin);
-                size = Constants.bitcoinsize;
+                g.setColor(Config.bitcoin);
+                size = Config.bitcoinsize;
             }
-            g.fillOval(ax + Constants.blocksize / 2 - size / 2, ay + Constants.blocksize / 2 - size / 2, size, size);
+            g.fillOval(ax + Config.blocksize / 2 - size / 2, ay + Config.blocksize / 2 - size / 2, size, size);
         }
     }
     
@@ -189,6 +293,16 @@ public class GameState implements IGamestate {
     public Dimension getPreferredSize() {
         
         return size;
+    }
+    
+    @Override
+    public IGamestate nextState() {
+        
+        if(gameOver) {
+            return new GameOverState(gameWon, this);
+        }
+        
+        return this;
     }
     
     @Override

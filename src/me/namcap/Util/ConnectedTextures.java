@@ -2,12 +2,10 @@ package me.namcap.Util;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
-import me.namcap.game.Util;
 
 public class ConnectedTextures {
     
@@ -29,13 +27,13 @@ public class ConnectedTextures {
         ENDLEFT,
         NONE;
         
-        private static final String path = "./res/sprites/Walls/";
+        private static final String path = "/sprites/Walls/";
         private BufferedImage img;
         
         WallDirection() {
     
             try {
-                this.img = ImageIO.read(new File(path + toString() + ".png"));
+                this.img = ImageIO.read(ConnectedTextures.class.getResourceAsStream(path + toString() + ".png"));
             } catch (IOException e) {
                 throw new RuntimeException(path + toString() + ".png",e);
             }

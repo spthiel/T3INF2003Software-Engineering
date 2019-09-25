@@ -5,9 +5,10 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 
 import me.namcap.Textures.Textures;
-import me.namcap.Util.BoolConsumer;
+import me.namcap.Util.Direction;
 import me.namcap.game.Map;
-import me.namcap.main.Constants;
+import me.namcap.gamestats.GameState;
+import me.namcap.main.Config;
 
 public class Player extends Entity implements KeyListener {
     
@@ -15,8 +16,12 @@ public class Player extends Entity implements KeyListener {
         super(map);
     }
     
-    public Player(BoolConsumer isGhostAt, int x, int y, Map map) {
-        super(isGhostAt, Constants.VELOCITY, x, y, map);
+    public Player(GameState state, Map map) {
+        this(state, 0, 0, map);
+    }
+    
+    public Player(GameState state, int x, int y, Map map) {
+        super(state, Config.VELOCITY, x, y, map);
     }
     
     @Override

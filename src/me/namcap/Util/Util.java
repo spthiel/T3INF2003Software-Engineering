@@ -1,10 +1,10 @@
-package me.namcap.game;
+package me.namcap.Util;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
-import me.namcap.main.Constants;
+import me.namcap.main.Config;
 
 public class Util {
     
@@ -32,8 +32,8 @@ public class Util {
     
     public static void translate(BufferedImage... images) {
         
-        Color wallColor = Constants.wall;
-        Color doorColor = Constants.door;
+        Color wallColor = Config.wall;
+        Color doorColor = Config.door;
         
         for(BufferedImage image : images) {
             

@@ -5,20 +5,21 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-import me.namcap.gamestats.GameState;
 import me.namcap.gamestats.IGamestate;
+import me.namcap.gamestats.MenuState;
 
 public class Panel extends JPanel implements KeyListener {
     
-    private static IGamestate gamestate = new GameState();
+    private static IGamestate gamestate = new MenuState();
     
     public Panel() {
         setBackground(Color.black);
         setVisible(true);
     }
     
-    public void update() {
-        gamestate.update();
+    public boolean update() {
+        gamestate = gamestate.nextState();
+        return gamestate.update();
     }
     
     private int repaints = 0;
@@ -39,7 +40,7 @@ public class Panel extends JPanel implements KeyListener {
     
     @Override
     public Dimension getPreferredSize() {
-        
+    
         return gamestate.getPreferredSize();
     }
     

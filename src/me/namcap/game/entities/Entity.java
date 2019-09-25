@@ -2,58 +2,13 @@ package me.namcap.game.entities;
 
 import java.awt.image.BufferedImage;
 
-import me.namcap.Util.BoolConsumer;
+import me.namcap.Util.Direction;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
-import me.namcap.main.Constants;
+import me.namcap.gamestats.GameState;
+import me.namcap.main.Config;
 
 public abstract class Entity {
-    
-    protected enum Direction {
-        
-        NORTH(0,0,-1),
-        EAST(1,1,0),
-        SOUTH(2,0,1),
-        WEST(3,-1,0);
-        
-        private int value,dx,dy;
-        
-        Direction(int value, int dx, int dy) {
-            this.value = value;
-            this.dx = dx;
-            this.dy = dy;
-        }
-        
-        public boolean isOtherway(Direction d) {
-            switch(this) {
-                case NORTH:
-                    return d.equals(SOUTH);
-                case EAST:
-                    return d.equals(WEST);
-                case SOUTH:
-                    return d.equals(NORTH);
-                case WEST:
-                    return d.equals(EAST);
-            }
-            return false;
-            //return this.dx == (-d.dx) && this.dy == (-d.dy);
-        }
-    
-        public int getValue() {
-        
-            return value;
-        }
-    
-        public int getDx() {
-        
-            return dx;
-        }
-    
-        public int getDy() {
-        
-            return dy;
-        }
-    }
     
     protected Direction direction = Direction.WEST;
     protected Direction tryDir = Direction.WEST;
@@ -62,19 +17,19 @@ public abstract class Entity {
     protected boolean stop = false;
     protected Map     map;
     private float velocity;
-    private BoolConsumer isGhostAt;
+    protected GameState state;
     
     public Entity(Map map) {
-        this((x,y) -> false, Constants.VELOCITY, 0, 0, map);
+        this(null, Config.VELOCITY, 0, 0, map);
     }
     
-    public Entity(BoolConsumer isGhostAt, float velocity, int x, int y, Map map) {
+    public Entity(GameState state, float velocity, int x, int y, Map map) {
         
         this.x = x;
         this.y = y;
         this.map = map;
         this.velocity = velocity;
-        this.isGhostAt = isGhostAt;
+        this.state = state;
     }
     
     private boolean move() {
@@ -87,8 +42,8 @@ public abstract class Entity {
         }
         progress += velocity;
         if(progress >= 1) {
-            x = bounds(x + direction.dx, 0, map.getWidth()-1);
-            y = bounds(y + direction.dy, 0, map.getHeight()-1);
+            x = bounds(x + direction.getDx(), 0, map.getWidth()-1);
+            y = bounds(y + direction.getDy(), 0, map.getHeight()-1);
             progress = 0;
             if(!checkBlock(tryDir)) {
                 direction = tryDir;
@@ -105,19 +60,19 @@ public abstract class Entity {
     }
     
     public float getX() {
-        return x + (progress * direction.dx);
+        return x + (progress * direction.getDx());
     }
     
     public float getY() {
         
-        return y + (progress * direction.dy);
+        return y + (progress * direction.getDy());
     }
     
     protected boolean checkBlock(Direction direction) {
         if(direction == null) {
             System.exit(0);
         }
-        return checkBlock(direction.dx, direction.dy) || checkGhost(direction.dx, direction.dy);
+        return checkBlock(direction.getDx(), direction.getDy()) || checkGhost(direction.getDx(), direction.getDy());
     }
     
     private boolean checkBlock(int dx, int dy) {
@@ -126,10 +81,17 @@ public abstract class Entity {
         return map.getBlock(x,y).equals(DataToObject.WALL);
     }
     
+    private Ghost getGhostAt(Direction dir) {
+        int x = bounds(this.x + dir.getDx(), 0, map.getWidth()-1);
+        int y = bounds(this.y + dir.getDy(), 0, map.getHeight()-1);
+        return state.getGhostAt(x,y);
+    }
+    
     private boolean checkGhost(int dx, int dy) {
         int x = bounds(this.x + dx, 0, map.getWidth()-1);
         int y = bounds(this.y + dy, 0, map.getHeight()-1);
-        return isGhostAt.accept(x,y);
+        Ghost g = state.getGhostAt(x,y);
+        return g != null && !g.isReturning();
     }
     
     protected int bounds(int value, int min, int max) {
@@ -143,4 +105,22 @@ public abstract class Entity {
     }
     
     public abstract BufferedImage getImage();
+    
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+    
+    public int getIX() {
+        return x;
+    }
+    
+    public int getIY() {
+        return y;
+    }
+    
+    public Direction getDirection() {
+        
+        return direction;
+    }
 }
