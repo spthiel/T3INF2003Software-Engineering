@@ -9,11 +9,15 @@ import me.namcap.main.Config;
 
 public class MenuState implements IGamestate {
     
-    private GameState nextGame = new GameState();
+    private GameState nextGame;
     private IGamestate nextState = this;
     
     public MenuState() {
+        this.nextGame = new GameState();
+    }
     
+    MenuState(GameState nextGame) {
+        this.nextGame = nextGame;
     }
     
     @Override
@@ -21,13 +25,13 @@ public class MenuState implements IGamestate {
         return false;
     }
     
-    private FontMetrics metrics;
-    private int height;
-    private int frame = 0;
-    private int colorframe = 0;
-    private static final int framesPerFrame = 50;
+    FontMetrics metrics;
+    int height;
+    int frame = 0;
+    int colorframe = 0;
+    static final int framesPerFrame = 50;
     
-    private int selected = 0;
+    int selected = 0;
     private String[] fields = {"Start", "Options", "Quit"};
     
     private static final Color gray = new Color(0,0,0,.4f);
@@ -61,7 +65,7 @@ public class MenuState implements IGamestate {
         }
     }
     
-    private void drawStrings(Graphics g, String... strings) {
+    void drawStrings(Graphics g, String... strings) {
     
         Rectangle rect = g.getClipBounds();
         int centerx = (int)rect.getWidth()/2;
@@ -92,7 +96,7 @@ public class MenuState implements IGamestate {
         
     }
     
-    private int[] getStringLengths(String[] strings) {
+    int[] getStringLengths(String[] strings) {
     
         int[] lengths = new int[strings.length];
         for (int i = 0 ; i < strings.length; i++) {
@@ -132,7 +136,7 @@ public class MenuState implements IGamestate {
             if(selected == 0) {
                 nextState = nextGame;
             } else if(selected == 1) {
-                nextState = new OptionState();
+                nextState = new OptionState(this, nextGame);
             } else if(selected == 2) {
                 System.exit(0);
             }
