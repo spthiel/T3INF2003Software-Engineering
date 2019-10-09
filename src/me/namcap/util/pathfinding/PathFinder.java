@@ -1,9 +1,9 @@
-package me.namcap.Util.pathfinding;
+package me.namcap.util.pathfinding;
 
 import java.util.*;
 import java.util.function.Consumer;
 
-import me.namcap.Util.Direction;
+import me.namcap.util.Direction;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.game.entities.Entity;

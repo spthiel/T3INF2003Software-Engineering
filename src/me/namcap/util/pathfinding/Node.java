@@ -1,6 +1,6 @@
-package me.namcap.Util.pathfinding;
+package me.namcap.util.pathfinding;
 
-import me.namcap.Util.Direction;
+import me.namcap.util.Direction;
 
 public class Node {
     
