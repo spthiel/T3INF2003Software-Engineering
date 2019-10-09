@@ -1,4 +1,4 @@
-package me.namcap.Textures;
+package me.namcap.assets;
 
 import java.awt.*;
 import java.io.IOException;
@@ -38,6 +38,22 @@ public enum Fonts {
     
     public Font deriveFont(int style, float size) {
         return font.deriveFont(style, size);
+    }
+    
+    public Fonts next() {
+        int next = this.ordinal() + 1;
+        if(next >= values().length) {
+            return values()[0];
+        }
+        return values()[next];
+    }
+    
+    public Fonts previous() {
+        int previous = this.ordinal() - 1;
+        if(previous < 0) {
+            return values()[values().length-1];
+        }
+        return values()[previous];
     }
     
 }

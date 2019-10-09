@@ -2,13 +2,7 @@ package me.namcap.gamestats;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 
-import me.namcap.Util.ConnectedTextures;
-import me.namcap.game.DataToObject;
-import me.namcap.game.Map;
-import me.namcap.game.entities.Ghost;
-import me.namcap.game.entities.Player;
 import me.namcap.main.Config;
 
 public class GameOverState implements IGamestate {

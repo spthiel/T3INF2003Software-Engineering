@@ -2,7 +2,7 @@ package me.namcap.main;
 
 import java.awt.*;
 
-import me.namcap.Textures.Fonts;
+import me.namcap.assets.Fonts;
 
 public class Config {
     
@@ -21,7 +21,7 @@ public class Config {
     
     public static Difficulty difficulty = Difficulty.HARD;
     
-    public static final float VELOCITY = 1 / 10f;
+    public static float VELOCITY = 1 / 10f;
     
     public static final Color
             coin    = new Color(255, 255, 0),

@@ -2,15 +2,22 @@ package me.namcap.gamestats;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Field;
 
-import me.namcap.Textures.Fonts;
+import me.namcap.assets.Fonts;
 import me.namcap.main.Config;
 
 public class MenuState implements IGamestate {
     
     private GameState nextGame;
     private IGamestate nextState = this;
+    
+    static {
+        updateFont();
+    }
+    
+    public static void updateFont() {
+        font = Config.font.deriveFont(Font.BOLD, 20f);
+    }
     
     public MenuState() {
         this.nextGame = new GameState();
@@ -36,7 +43,7 @@ public class MenuState implements IGamestate {
     
     private static final Color gray = new Color(0,0,0,.4f);
     
-    private static Font font = Config.font.deriveFont(Font.BOLD, 40f);
+    private static Font font;
     
     @Override
     public void draw(Graphics g) {
@@ -108,17 +115,29 @@ public class MenuState implements IGamestate {
     @Override
     public Dimension getPreferredSize() {
         
-        return nextGame.size;
+        return nextGame.getPreferredSize();
     }
     
     @Override
     public IGamestate nextState() {
         
-        return nextState;
+        IGamestate toReturn = nextState;
+        if(nextState != this) {
+            nextState = this;
+        }
+        return toReturn;
     }
     
     private int f = 0;
     
+    /**
+     @param key Magic numnber
+            0 = up
+            1 = left
+            2 = down
+            3 = right
+            4 = confirm
+     */
     public void onKey(int key) {
         if(key == 2) {
             selected++;
@@ -161,7 +180,7 @@ public class MenuState implements IGamestate {
     public void keyPressed(KeyEvent e) {
      
         int dir = translateKeyCode(e.getKeyCode());
-        if(dir >= 0 && !keyStates[dir]) {
+        if(true || (dir >= 0 && !keyStates[dir])) {
             keyStates[dir] = true;
             onKey(dir);
         }
@@ -208,4 +227,5 @@ public class MenuState implements IGamestate {
         }
         return dir;
     }
+    
 }

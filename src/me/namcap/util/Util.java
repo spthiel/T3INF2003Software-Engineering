@@ -1,4 +1,4 @@
-package me.namcap.Util;
+package me.namcap.util;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

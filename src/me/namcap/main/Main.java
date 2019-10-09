@@ -15,17 +15,17 @@ public class Main {
         frame.add(p);
         frame.addKeyListener(p);
         frame.pack();
-        placeCentered(frame);
     
         Thread drawLoop = new Thread(() -> {
         
             long current;
             long last = System.currentTimeMillis();
             float delta;
-            float timeperframe = 1000.0f/ Config.maxfps;
+            float timeperframe;
             float timer = 0;
         
             while(true) {
+                timeperframe = 1000.0f/ Config.maxfps;
             
                 current = System.currentTimeMillis();
                 delta = current - last;
@@ -35,6 +35,10 @@ public class Main {
                 if(timer >= timeperframe) {
                     p.repaint();
                     timer -= timeperframe;
+                    Dimension d = p.getPreferredSize();
+                    if(d != null) {
+                        placeCentered(frame, d.width, d.height);
+                    }
                 }
             }
         
@@ -46,12 +50,13 @@ public class Main {
             long current;
             long last = System.currentTimeMillis();
             float delta;
-            float timeperframe = 1000.0f/ Config.maxups;
+            float timeperframe;
             float timer = 0;
             float upstimer = 0;
             int ups = 0;
         
             while(true) {
+                timeperframe = 1000.0f/ Config.maxups;
             
                 current = System.currentTimeMillis();
                 delta = current - last;
@@ -75,12 +80,11 @@ public class Main {
         updateLoop.start();
     }
     
-    private static void placeCentered(JFrame f) {
+    private static void placeCentered(JFrame f, int width, int height) {
         Rectangle res = getResolution(f);
-        Dimension size = f.getSize();
-        int x = res.x + res.width/2-size.width/2;
-        int y = res.y + res.height/2-size.height/2;
-        f.setBounds(x,y,size.width,size.height);
+        int x = res.x + res.width/2-width/2;
+        int y = res.y + res.height/2-height/2;
+        f.setBounds(x,y,width,height);
     }
     
     

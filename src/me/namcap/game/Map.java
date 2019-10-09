@@ -2,7 +2,7 @@ package me.namcap.game;
 
 import java.awt.image.BufferedImage;
 
-import me.namcap.Util.Util;
+import me.namcap.util.Util;
 
 public class Map {
     

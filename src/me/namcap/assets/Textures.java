@@ -1,10 +1,10 @@
-package me.namcap.Textures;
+package me.namcap.assets;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import me.namcap.Util.Util;
+import me.namcap.util.Util;
 
 public enum Textures {
     

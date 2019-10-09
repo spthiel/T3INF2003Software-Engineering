@@ -5,10 +5,10 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import me.namcap.Textures.Textures;
-import me.namcap.Util.ConnectedTextures;
-import me.namcap.Util.Direction;
-import me.namcap.Util.pathfinding.PathFinder;
+import me.namcap.assets.Textures;
+import me.namcap.util.ConnectedTextures;
+import me.namcap.util.Direction;
+import me.namcap.util.pathfinding.PathFinder;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.game.MapLoader;
@@ -289,9 +289,15 @@ public class GameState implements IGamestate {
         }
     }
     
+    private int lastBlocksize = 0;
+    
     @Override
     public Dimension getPreferredSize() {
-        
+    
+        if(Config.blocksize != lastBlocksize) {
+            size = new Dimension(map.length * Config.blocksize, map[0].length * Config.blocksize);
+            lastBlocksize = Config.blocksize;
+        }
         return size;
     }
     

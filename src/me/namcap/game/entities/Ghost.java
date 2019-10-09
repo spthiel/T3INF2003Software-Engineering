@@ -4,10 +4,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-import me.namcap.Textures.Textures;
-import me.namcap.Util.Direction;
-import me.namcap.Util.Vec2O2;
-import me.namcap.Util.pathfinding.PathFinder;
+import me.namcap.assets.Textures;
+import me.namcap.util.Direction;
+import me.namcap.util.Vec2O2;
+import me.namcap.util.pathfinding.PathFinder;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.gamestats.GameState;
@@ -57,6 +57,7 @@ public class Ghost extends Entity {
     
     @Override
     public boolean update() {
+        setVelocity(Config.VELOCITY*2/3);
         stop = false;
         if(boredCounter > 0) {
             boredCounter--;

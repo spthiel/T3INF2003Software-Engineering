@@ -2,8 +2,11 @@ package me.namcap.gamestats;
 
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.function.Consumer;
 
-import me.namcap.Textures.Fonts;
+import me.namcap.assets.Fonts;
 import me.namcap.main.Config;
 import static me.namcap.gamestats.Option.Type.*;
 
@@ -18,13 +21,18 @@ public class Option {
         BACK
     }
     
+    private NumberFormat format = new DecimalFormat("###,##0.00");
+    
     private Field field;
     private Type type;
     private String key;
     private int min, max, step;
     private float minF, maxF, stepF;
     private int steps;
-    private int selected;
+    private Object cachedValue;
+    
+    private boolean instantupdate = false;
+    private Consumer<Object> callOnUpdate = null;
     
     private void initialize(String key, String fieldname, Type type) {
     
@@ -35,48 +43,59 @@ public class Option {
             if(type.equals(INT)) {
                 int currentValue = (int)field.get(null);
                 if(currentValue < min) {
-                    selected = 0;
+                    cachedValue = min;
                 } else if(currentValue > max) {
-                    selected = 0;
+                    cachedValue = max;
                 } else {
-                    int closest = Integer.MIN_VALUE;
-                    selected = 0;
-                    int idx = 0;
-                    for(int i = min; i <= max; i += step) {
-                        if(currentValue - i < closest - i) {
+                    cachedValue = min;
+                    int closest = Integer.MAX_VALUE;
+                    for (int i = min ; i <= max ; i += step) {
+                        if (Math.abs(currentValue - i) < Math.abs(closest - i)) {
                             closest = currentValue;
-                            selected = idx;
+                            cachedValue = closest;
                         }
-                        idx++;
                     }
                 }
             } else if(type.equals(FLOAT)) {
+    
                 float currentValue = (float)field.get(null);
-                if(currentValue < min) {
-                    selected = 0;
-                } else if(currentValue > max) {
-                    selected = 0;
+                if(currentValue < minF) {
+                    cachedValue = minF;
+                } else if(currentValue > maxF) {
+                    cachedValue = maxF;
                 } else {
-                    float closest = Integer.MIN_VALUE;
-                    selected = 0;
-                    int idx = 0;
-                    for(int i = min; i <= max; i += step) {
-                        if(currentValue - i < closest - i) {
+                    cachedValue = minF;
+                    float closest = Integer.MAX_VALUE;
+                    for (float i = minF ; i <= maxF ; i += stepF) {
+                        if (Math.abs(currentValue - i) < Math.abs(closest - i)) {
                             closest = currentValue;
-                            selected = idx;
+                            cachedValue = closest;
                         }
-                        idx++;
                     }
                 }
             } else if(type.equals(FONT)) {
                 Fonts currentValue = (Fonts)field.get(null);
                 for(Fonts f : Fonts.values()) {
                     if(f.equals(currentValue)) {
-                        selected = f.ordinal();
+                        cachedValue = f;
                         break;
                     }
                 }
-                selected = 0;
+                if (cachedValue == null) {
+                    cachedValue = Fonts.values()[0];
+                }
+            } else if(type.equals(DIFFICULTY)) {
+                Config.Difficulty currentValue = (Config.Difficulty) field.get(null);
+                for(Config.Difficulty d : Config.Difficulty.values()) {
+                    System.out.println(d + " " + currentValue);
+                    if(d.equals(currentValue)) {
+                        cachedValue = d;
+                        break;
+                    }
+                }
+                if (cachedValue == null) {
+                    cachedValue = Config.Difficulty.values()[0];
+                }
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
             throw new IllegalArgumentException("Invalid field for " + key,e);
@@ -112,8 +131,8 @@ public class Option {
     }
     
     public Option(String key, String fieldname, Type type,  int min, int max, int step) {
-        if(type != INT && type != FONT) {
-            throw new IllegalArgumentException("You may not use any Type besides int with two Parameters.");
+        if(type != INT) {
+            throw new IllegalArgumentException("You may not use any Type besides int with int Parameters.");
         }
         this.min = min;
         this.max = max;
@@ -122,13 +141,23 @@ public class Option {
     }
     
     public Option(String key, String fieldname, Type type, float min, float max, float step) {
-        if(type != INT) {
-            throw new IllegalArgumentException("You may not use any Type besides int with two Parameters.");
+        if(type != FLOAT) {
+            throw new IllegalArgumentException("You may not use any Type besides float with float Parameters.");
         }
         this.minF = min;
         this.maxF = max;
         this.stepF = (max-min)/(float)Math.floor(((max-min)/step));
         initialize(key, fieldname, type);
+    }
+    
+    public Option setInstantupdate() {
+        instantupdate = true;
+        return this;
+    }
+    
+    public Option onUpdate(Consumer<Object> consumer) {
+        callOnUpdate = consumer;
+        return this;
     }
     
     public Type getType() {
@@ -169,46 +198,123 @@ public class Option {
     
     public void draw(Graphics g, int x, int y) {
         
-        int steps;
-        
-        switch(type) {
-            case FLOAT:
-                steps = (int)((maxF-minF)/stepF);
-                break;
+        switch (type) {
             case INT:
-            case FONT:
             case DIFFICULTY:
-                steps = (max-min)/step;
+            case FONT:
+                g.drawString(cachedValue.toString(), x, y);
+                break;
+            case FLOAT:
+                g.drawString(format.format((float)cachedValue), x, y);
                 break;
             default:
-                return;
         }
-        
-//        int liney = y+height/2-1;
-//        g.fillRect(x, liney, width, 4);
-//        
-//        float dx = (width-4f)/steps;
-//
-//        float newheight = height*0.5f;
-//        int newy = y+(height-(int)newheight)/2;
-//
-//        Color before = g.getColor();
-//
-//        int idx = 0;
-//        for (float i = x ; i < x+width ; i += dx) {
-//            if(selected == idx) {
-//                g.setColor(Color.red);
-//            } else {
-//                g.setColor(before);
-//            }
-//            g.fillRect((int)i, newy, 4, (int)newheight);
-//            idx++;
-//        }
-        
+    }
+    
+    public void next() {
+        switch (type) {
+            case INT:
+                cachedValue = (int)cachedValue + step;
+                if((int)cachedValue > max) {
+                    cachedValue = min;
+                }
+                break;
+            case FLOAT:
+                cachedValue = (float)cachedValue + stepF;
+                if((float)cachedValue > maxF) {
+                    cachedValue = minF;
+                }
+                break;
+            case FONT:
+                cachedValue = ((Fonts)cachedValue).next();
+                break;
+            case DIFFICULTY:
+                switch ((Config.Difficulty)cachedValue) {
+                    case EASY:
+                        cachedValue = Config.Difficulty.MEDIUM;
+                        break;
+                    case MEDIUM:
+                        cachedValue = Config.Difficulty.HARD;
+                        break;
+                    case HARD:
+                        cachedValue = Config.Difficulty.EASY;
+                        break;
+                }
+                break;
+        }
+        if (instantupdate) {
+            update();
+        }
+    }
+    
+    public void previous() {
+    
+        switch (type) {
+            case INT:
+                cachedValue = (int)cachedValue - step;
+                if((int)cachedValue < min) {
+                    cachedValue = max;
+                }
+                break;
+            case FLOAT:
+                cachedValue = (float)cachedValue - stepF;
+                if((float)cachedValue < minF) {
+                    cachedValue = maxF;
+                }
+                break;
+            case FONT:
+                cachedValue = ((Fonts)cachedValue).previous();
+                break;
+            case DIFFICULTY:
+                switch ((Config.Difficulty)cachedValue) {
+                    case EASY:
+                        cachedValue = Config.Difficulty.HARD;
+                        break;
+                    case MEDIUM:
+                        cachedValue = Config.Difficulty.EASY;
+                        break;
+                    case HARD:
+                        cachedValue = Config.Difficulty.MEDIUM;
+                        break;
+                }
+                break;
+        }
+        if (instantupdate) {
+            update();
+        }
     }
     
     public void update() {
-    
+        try {
+            if (field != null) {
+                field.set(null, cachedValue);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        if (callOnUpdate != null) {
+            callOnUpdate.accept(cachedValue);
+        }
     }
     
+    @Override
+    public String toString() {
+        
+        switch (type) {
+            case FLOAT:
+                return String.format("Option[\"type\":\"%s\",\"field\":\"%s\",\"key\":\"%s\",\"min\":%d,\"max\":%f,\"step\":%f,\"cachedValue\":%s]", type.name(), field.getName(), key, minF, maxF, stepF, cachedValue.toString());
+            case DIFFICULTY:
+            case FONT:
+                return String.format("Option[\"type\":\"%s\",\"field\":\"%s\",\"key\":\"%s\",\"cachedValue\":%s]", type.name(), field.getName(), key, cachedValue.toString());
+            case INT:
+                return String.format("Option[\"type\":\"%s\",\"field\":\"%s\",\"key\":\"%s\",\"min\":%d,\"max\":%d,\"step\":%d,\"cachedValue\":%s]", type.name(), field.getName(), key, min, max, step, cachedValue.toString());
+            case COLOR:
+                return String.format("Option[\"type\":\"%s\",\"field\":\"%s\",\"key\":\"%s\"]", type.name(), field.getName(), key);
+            case BACK:
+                return String.format("Option[\"type\":\"%s\",\"key\":\"%s\"]", type.name(), key);
+            default:
+                return "Option[Error]";
+        }
+        
+    }
 }

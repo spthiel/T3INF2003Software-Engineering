@@ -4,8 +4,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 
-import me.namcap.Textures.Textures;
-import me.namcap.Util.Direction;
+import me.namcap.assets.Textures;
+import me.namcap.util.Direction;
 import me.namcap.game.Map;
 import me.namcap.gamestats.GameState;
 import me.namcap.main.Config;
@@ -36,6 +36,7 @@ public class Player extends Entity implements KeyListener {
     public boolean update() {
         
         super.update();
+        setVelocity(Config.VELOCITY);
         frame++;
         if(frame > 40) {
             frame = 0;

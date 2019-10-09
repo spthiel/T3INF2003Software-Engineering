@@ -1,4 +1,4 @@
-package me.namcap.Util;
+package me.namcap.util;
 
 public class Vec2I extends Vec2O<Integer> {
     

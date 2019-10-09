@@ -2,7 +2,7 @@ package me.namcap.game.entities;
 
 import java.awt.image.BufferedImage;
 
-import me.namcap.Util.Direction;
+import me.namcap.util.Direction;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.gamestats.GameState;
@@ -30,6 +30,10 @@ public abstract class Entity {
         this.map = map;
         this.velocity = velocity;
         this.state = state;
+    }
+    
+    protected void setVelocity(float velocity) {
+        this.velocity = velocity;
     }
     
     private boolean move() {

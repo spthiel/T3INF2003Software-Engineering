@@ -1,4 +1,4 @@
-package me.namcap.Util;
+package me.namcap.util;
 
 public class Vec2O<T> extends Vec2O2<T,T>{
     
