@@ -9,6 +9,7 @@ public class GameOverState implements IGamestate {
     
     private boolean won;
     private GameState state;
+    private IGamestate nextState = this;
     
     public GameOverState(boolean won, GameState gameState) {
         this.won = won;
@@ -51,16 +52,18 @@ public class GameOverState implements IGamestate {
     @Override
     public IGamestate nextState() {
         
-        return this;
+        return nextState;
     }
     
     @Override
     public void keyTyped(KeyEvent e) {
-    
     }
     
     @Override
     public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            nextState = new MenuState();
+        }
     
     }
     

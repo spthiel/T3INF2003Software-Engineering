@@ -9,6 +9,8 @@ import me.namcap.game.Map;
 import me.namcap.game.entities.Entity;
 import me.namcap.game.entities.Ghost;
 
+import static me.namcap.util.Util.bounds;
+
 public class PathFinder {
     
     private Node[][] all;
@@ -104,8 +106,8 @@ public class PathFinder {
                 int x = current.getX() + d.getDx();
                 int y = current.getY() + d.getDy();
                 
-                x = bounds(x, 0, all.length-1);
-                y = bounds(y, 0, all[0].length-1);
+                x = bounds(x, all.length-1);
+                y = bounds(y, all[0].length-1);
                 
                 if(x == endx && y == endy) {
                     if(current == start) {
@@ -132,8 +134,8 @@ public class PathFinder {
         while(n != start) {
             int x = n.getX() + n.getCameFrom().getDx();
             int y = n.getY() + n.getCameFrom().getDy();
-            x = bounds(x, 0, all.length-1);
-            y = bounds(y, 0, all[0].length-1);
+            x = bounds(x, all.length-1);
+            y = bounds(y, all[0].length-1);
             if(n.getCameFrom() != null) {
                 last = n.getCameFrom();
             }
@@ -170,16 +172,6 @@ public class PathFinder {
             default:
                 return ' ';
         }
-    }
-    
-    private int bounds(int value, int min, int max) {
-        if(value < min) {
-            value = max;
-        }
-        if(value > max) {
-            value = min;
-        }
-        return value;
     }
     
 }

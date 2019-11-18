@@ -63,4 +63,34 @@ public class Util {
         
     }
     
+    public static String getHexString(Color color) {
+        return getHexString(color.getRed(), color.getGreen(), color.getBlue());
+    }
+    
+    public static String getHexString(int red, int green, int blue) {
+        String r = leadingZero(Integer.toString(red, 16));
+        String g = leadingZero(Integer.toString(green, 16));
+        String b = leadingZero(Integer.toString(blue, 16));
+        
+        return "#" + r + g + b;
+    }
+    
+    private static String leadingZero(String s) {
+        if(s.length() == 1) {
+            return "0" + s;
+        }
+        return s;
+    }
+    
+    public static int bounds(int value, int max) {
+        
+        if (value < 0) {
+            value = max;
+        }
+        if (value > max) {
+            value = 0;
+        }
+        return value;
+    }
+    
 }

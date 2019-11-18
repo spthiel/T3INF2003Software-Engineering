@@ -6,8 +6,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.function.Consumer;
 
+import me.namcap.assets.ConnectedTextures;
 import me.namcap.assets.Fonts;
+import me.namcap.assets.Textures;
+import me.namcap.colorpicker.ColorPicker;
 import me.namcap.main.Config;
+import me.namcap.util.Util;
+
 import static me.namcap.gamestats.Option.Type.*;
 
 public class Option {
@@ -30,6 +35,7 @@ public class Option {
     private float minF, maxF, stepF;
     private int steps;
     private Object cachedValue;
+    private String cachedHexstring;
     
     private boolean instantupdate = false;
     private Consumer<Object> callOnUpdate = null;
@@ -96,6 +102,13 @@ public class Option {
                 if (cachedValue == null) {
                     cachedValue = Config.Difficulty.values()[0];
                 }
+            } else if(type.equals(COLOR)) {
+                Color currentValue = (Color) field.get(null);
+                if (currentValue == null) {
+                    currentValue = Color.BLACK;
+                }
+                cachedValue = currentValue;
+                cachedHexstring = Util.getHexString(currentValue);
             }
         } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
             throw new IllegalArgumentException("Invalid field for " + key,e);
@@ -207,6 +220,9 @@ public class Option {
             case FLOAT:
                 g.drawString(format.format((float)cachedValue), x, y);
                 break;
+            case COLOR:
+                g.drawString(cachedHexstring, x, y);
+                break;
             default:
         }
     }
@@ -240,6 +256,17 @@ public class Option {
                         cachedValue = Config.Difficulty.EASY;
                         break;
                 }
+                break;
+            case COLOR:
+                new ColorPicker(1, (Color)cachedValue).subscribe((color) -> {
+                    cachedValue = color;
+                    cachedHexstring = Util.getHexString(color);
+                    if (instantupdate) {
+                        update();
+                    }
+                    Textures.updateColor();
+                    ConnectedTextures.WallDirection.updateColor();
+                });
                 break;
         }
         if (instantupdate) {
@@ -277,6 +304,17 @@ public class Option {
                         cachedValue = Config.Difficulty.MEDIUM;
                         break;
                 }
+                break;
+            case COLOR:
+                new ColorPicker(1, (Color)cachedValue).subscribe((color) -> {
+                    cachedValue = color;
+                    cachedHexstring = Util.getHexString(color);
+                    if (instantupdate) {
+                        update();
+                    }
+                    Textures.updateColor();
+                    ConnectedTextures.WallDirection.updateColor();
+                });
                 break;
         }
         if (instantupdate) {

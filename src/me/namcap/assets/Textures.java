@@ -3,6 +3,7 @@ package me.namcap.assets;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Arrays;
 
 import me.namcap.util.Util;
 
@@ -19,8 +20,11 @@ public enum Textures {
     
     private static final String path = "/sprites/%s.png";
     private BufferedImage[] images;
+    private boolean translate;
+    private String[] paths;
     
     Textures(boolean translate, String... paths) {
+        this.paths = paths;
         images = new BufferedImage[paths.length];
         for (int i = 0 ; i < paths.length ; i++) {
             try {
@@ -29,8 +33,25 @@ public enum Textures {
                 throw new RuntimeException(String.format(path,paths[i]),e);
             }
         }
+        this.translate = translate;
         if(translate) {
             Util.translate(images);
+        }
+    }
+    
+    public static void updateColor() {
+        for (Textures t : values()) {
+            if(t.translate) {
+                t.images = new BufferedImage[t.paths.length];
+                for (int i = 0 ; i < t.paths.length ; i++) {
+                    try {
+                        t.images[i] = ImageIO.read(Textures.class.getResourceAsStream((String.format(path,t.paths[i]))));
+                    } catch (IOException | IllegalArgumentException e) {
+                        throw new RuntimeException(String.format(path,t.paths[i]),e);
+                    }
+                }
+                Util.translate(t.images);
+            }
         }
     }
     

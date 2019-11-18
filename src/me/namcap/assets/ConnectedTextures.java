@@ -1,11 +1,13 @@
-package me.namcap.util;
+package me.namcap.assets;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
+import me.namcap.util.Util;
 
 public class ConnectedTextures {
     
@@ -25,6 +27,7 @@ public class ConnectedTextures {
         ENDRIGHT,
         ENDDOWN,
         ENDLEFT,
+        ENDALL,
         NONE;
         
         private static final String path = "/sprites/Walls/";
@@ -43,6 +46,17 @@ public class ConnectedTextures {
         public BufferedImage getImg() {
         
             return img;
+        }
+    
+        public static void updateColor() {
+            for (WallDirection t : values()) {
+                try {
+                    t.img = ImageIO.read(ConnectedTextures.class.getResourceAsStream(path + t.toString() + ".png"));
+                } catch (IOException e) {
+                    throw new RuntimeException(path + t.toString() + ".png",e);
+                }
+                Util.translate(t.img);
+            }
         }
     }
     
@@ -119,6 +133,8 @@ public class ConnectedTextures {
                 return WallDirection.ENDDOWN;
             } else if (!up && !right && !down && left) {
                 return WallDirection.ENDLEFT;
+            } else if (!up && !right && !down && !left) {
+                return WallDirection.ENDALL;
             }
         } else if (map[x][y] == DataToObject.DOOR) {
             if (vDoor(x, y)) {

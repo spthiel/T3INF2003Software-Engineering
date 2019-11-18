@@ -6,12 +6,15 @@ import java.util.Random;
 
 import me.namcap.assets.Textures;
 import me.namcap.util.Direction;
+import me.namcap.util.Vec2I;
 import me.namcap.util.Vec2O2;
 import me.namcap.util.pathfinding.PathFinder;
 import me.namcap.game.DataToObject;
 import me.namcap.game.Map;
 import me.namcap.gamestats.GameState;
 import me.namcap.main.Config;
+
+import static me.namcap.util.Util.bounds;
 
 public class Ghost extends Entity {
     
@@ -24,7 +27,6 @@ public class Ghost extends Entity {
         g.fillRect(0,0,32,32);
     }
     
-    public static final int boredom = 180;
     public static final int mortality = 600;
     private static int counter = 0;
     
@@ -38,27 +40,37 @@ public class Ghost extends Entity {
     
     private boolean returning;
     
+    private boolean inDoor;
+    private boolean doorAI;
+    private Vec2I doorAITo;
+    
     public Ghost(GameState state, int x, int y, Player p, Map map) {
         super(state, Config.VELOCITY*2/3, x, y, map);
         img = Textures.GHOSTS.get(counter++);
         this.p = p;
+        this.startx = x;
+        this.starty = y;
+        changeDifficulty();
+    }
+    
+    public void changeDifficulty() {
         switch (Config.difficulty) {
             case HARD:
                 boredCounter = -1;
                 break;
             case MEDIUM:
-            case EASY:
                 boredCounter = 0;
                 break;
+            case EASY:
+                boredCounter = -2;
+                break;
         }
-        this.startx = x;
-        this.starty = y;
     }
     
     @Override
     public boolean update() {
         setVelocity(Config.VELOCITY*2/3);
-        stop = false;
+        stop = inDoor;
         if(boredCounter > 0) {
             boredCounter--;
         }
@@ -69,8 +81,12 @@ public class Ghost extends Entity {
         if(super.update()) {
             if(returning) {
                 backAI();
+            } else if(isVincible()) {
+                randomAI();
             } else if(boredCounter > 0 || boredCounter == -1) {
                 seekAI();
+            } else if(doorAI) {
+                doorAI();
             } else {
                 randomAI();
             }
@@ -80,6 +96,10 @@ public class Ghost extends Entity {
     
     public boolean isVincible() {
         return mortalTimer > 0;
+    }
+    
+    public void seesPlayer() {
+        boredCounter = Config.boredom;
     }
     
     @Override
@@ -131,7 +151,7 @@ public class Ghost extends Entity {
         Direction[] all = new Direction[4];
         Direction otherWay = null;
         for(Direction d : Direction.values()) {
-            DataToObject block = map.getBlock(bounds(x + d.getDx(), 0, map.getWidth()-1), bounds(y + d.getDy(), 0, map.getHeight()-1));
+            DataToObject block = map.getBlock(bounds(x + d.getDx(), map.getWidth()-1), bounds(y + d.getDy(), map.getHeight()-1));
             if(block != DataToObject.WALL && block != DataToObject.DOOR) {
                 if(d.isOtherway(direction)) {
                     otherWay = d;
@@ -174,7 +194,18 @@ public class Ghost extends Entity {
     }
     
     private void doorAI() {
-    
+        finder.reset();
+        int dir = finder.find(x, y, doorAITo.x1, doorAITo.x2);
+        if(dir == -2) {
+            doorAI = false;
+            return;
+        }
+        if(dir == -1) {
+            return;
+        }
+        Direction d = Direction.values()[dir];
+        direction = d;
+        tryDir = d;
     }
     
     private void backAI() {
@@ -198,5 +229,16 @@ public class Ghost extends Entity {
     public boolean isReturning() {
         
         return returning;
+    }
+    
+    public void setInDoor() {
+        
+        this.inDoor = true;
+    }
+    
+    public void setDoorAITo(Vec2I doorAITo) {
+        this.inDoor = false;
+        this.doorAI = true;
+        this.doorAITo = doorAITo;
     }
 }

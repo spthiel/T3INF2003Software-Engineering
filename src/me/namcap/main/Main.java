@@ -37,7 +37,7 @@ public class Main {
                     timer -= timeperframe;
                     Dimension d = p.getPreferredSize();
                     if(d != null) {
-                        placeCentered(frame, d.width, d.height);
+                        placeCentered(frame, d.width + 6, d.height + 35);
                     }
                 }
             }
@@ -80,7 +80,7 @@ public class Main {
         updateLoop.start();
     }
     
-    private static void placeCentered(JFrame f, int width, int height) {
+    public static void placeCentered(Window f, int width, int height) {
         Rectangle res = getResolution(f);
         int x = res.x + res.width/2-width/2;
         int y = res.y + res.height/2-height/2;
@@ -88,7 +88,7 @@ public class Main {
     }
     
     
-    private static Rectangle getResolution(JFrame frame) {
+    private static Rectangle getResolution(Window frame) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         
         //height of the task bar

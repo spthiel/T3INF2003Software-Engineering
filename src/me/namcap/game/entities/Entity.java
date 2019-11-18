@@ -8,6 +8,8 @@ import me.namcap.game.Map;
 import me.namcap.gamestats.GameState;
 import me.namcap.main.Config;
 
+import static me.namcap.util.Util.bounds;
+
 public abstract class Entity {
     
     protected Direction direction = Direction.WEST;
@@ -46,8 +48,8 @@ public abstract class Entity {
         }
         progress += velocity;
         if(progress >= 1) {
-            x = bounds(x + direction.getDx(), 0, map.getWidth()-1);
-            y = bounds(y + direction.getDy(), 0, map.getHeight()-1);
+            x = bounds(x + direction.getDx(), map.getWidth()-1);
+            y = bounds(y + direction.getDy(), map.getHeight()-1);
             progress = 0;
             if(!checkBlock(tryDir)) {
                 direction = tryDir;
@@ -80,32 +82,22 @@ public abstract class Entity {
     }
     
     private boolean checkBlock(int dx, int dy) {
-        int x = bounds(this.x + dx, 0, map.getWidth()-1);
-        int y = bounds(this.y + dy, 0, map.getHeight()-1);
+        int x = bounds(this.x + dx, map.getWidth()-1);
+        int y = bounds(this.y + dy, map.getHeight()-1);
         return map.getBlock(x,y).equals(DataToObject.WALL);
     }
     
     private Ghost getGhostAt(Direction dir) {
-        int x = bounds(this.x + dir.getDx(), 0, map.getWidth()-1);
-        int y = bounds(this.y + dir.getDy(), 0, map.getHeight()-1);
+        int x = bounds(this.x + dir.getDx(), map.getWidth()-1);
+        int y = bounds(this.y + dir.getDy(), map.getHeight()-1);
         return state.getGhostAt(x,y);
     }
     
     private boolean checkGhost(int dx, int dy) {
-        int x = bounds(this.x + dx, 0, map.getWidth()-1);
-        int y = bounds(this.y + dy, 0, map.getHeight()-1);
+        int x = bounds(this.x + dx, map.getWidth()-1);
+        int y = bounds(this.y + dy, map.getHeight()-1);
         Ghost g = state.getGhostAt(x,y);
         return g != null && !g.isReturning();
-    }
-    
-    protected int bounds(int value, int min, int max) {
-        if(value < min) {
-            value = max;
-        }
-        if(value > max) {
-            value = min;
-        }
-        return value;
     }
     
     public abstract BufferedImage getImage();

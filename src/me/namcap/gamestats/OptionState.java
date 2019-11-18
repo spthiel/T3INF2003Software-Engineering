@@ -3,7 +3,10 @@ package me.namcap.gamestats;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
+import me.namcap.assets.ConnectedTextures;
 import me.namcap.assets.Fonts;
+import me.namcap.assets.Textures;
+import me.namcap.main.Config;
 
 import static me.namcap.gamestats.Option.Type.*;
 
@@ -45,8 +48,10 @@ public class OptionState extends MenuState {
             new Option("Max FPS", "maxfps", INT, 20, 500, 5).setInstantupdate(),
             new Option("Blocksize", "blocksize", INT, 20,40).setInstantupdate(),
             new Option("Font", "font", FONT).setInstantupdate().onUpdate(this::onFontChange),
-            new Option("Difficulty", "difficulty", DIFFICULTY).setInstantupdate(),
+            new Option("Difficulty", "difficulty", DIFFICULTY).setInstantupdate().onUpdate((ignored) -> nextGame.changeDifficulty()),
             new Option("Velocity", "VELOCITY", FLOAT, 0.05f, 1f, 0.05f).setInstantupdate(),
+            new Option("Boredom", "boredom", INT, 10, 400, 5).setInstantupdate(),
+            new Option("Walls", "wall", COLOR).setInstantupdate(),
             new Option("Back")
     };
     
@@ -123,7 +128,10 @@ public class OptionState extends MenuState {
             fields[selected].previous();
         } else if(key == 4) {
             if(selected == fields.length-1) {
+                Config.save();
                 back = true;
+            } else if(fields[selected].getType() == COLOR) {
+                fields[selected].next();
             }
         }
     }
